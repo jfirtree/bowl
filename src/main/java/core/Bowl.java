@@ -16,6 +16,8 @@ public class Bowl{
 	final static String ERROR_NEGATIVE = "Invalid pin number: %d.  Number of pins knocked down must be zero or greater.";
 	final static String ERROR_TOO_HIGH = "Invalid pin number: %d.  Number of pins knocked down must be at most %d.";
 	final static String ERROR_SUM_PINS_HIGH = "Frame %d reports %d and %d pins, for a total of %d pins.  Number of pins knocked down per frame must be at most %d.";
+	final static String ERROR_NOT_ENOUGH_ROLLS = "Not enough rolls provided.  Only got to frame %d, ball %d.";
+	final static String ERROR_TOO_MANY_ROLLS = "Too many rolls provided.  You provided %d, but there should only be %d.";
 
 	final static String WARN_ALPHABET = "Warning: reading only numeric and separator input.  Ignoring letters.";
 
@@ -89,6 +91,7 @@ public class Bowl{
 		int ballNum = 0;
 		int frameNum = 1;
 		List<Integer> scores = new ArrayList<>();
+		final int totalRolls = rolls.size();
 		int i;
 		for(i = 0; frameNum < NUM_FRAMES; i++){
 			final int currRoll = rolls.get(i);
@@ -99,6 +102,8 @@ public class Bowl{
 			Result result = Result.evaluate(ballNum, currRoll, lastRoll);
 			scores.add(sumSubList(rolls, i, result.bonusRolls));
 
+			if((i + 1) >= totalRolls)
+				throw new IndexOutOfBoundsException(String.format(ERROR_NOT_ENOUGH_ROLLS, frameNum, ballNum + 1));
 			if(result == Result.STRIKE || ballNum == 1){
 				ballNum = 0;
 				frameNum++;
@@ -107,9 +112,14 @@ public class Bowl{
 			}
 		}
 
-		//TODO: bonus balls from a strike or spare in the last frame.
 		//TODO: varying pin max validation based on strike, spare, or nothing.
-		int remainingBalls = 2;
+		int remainingBalls = rolls.get(i) + rolls.get(i + 1) >= 10 ? 3 : 2;
+		int inputRemaining = totalRolls - i;
+		if(inputRemaining < remainingBalls)
+			throw new IndexOutOfBoundsException(String.format(ERROR_NOT_ENOUGH_ROLLS, 10, inputRemaining));
+		else if(inputRemaining > remainingBalls)
+			throw new IllegalArgumentException(String.format(ERROR_TOO_MANY_ROLLS, totalRolls, i + remainingBalls));
+
 		for(ballNum = 0; ballNum < remainingBalls; ballNum++){
 			scores.add(rolls.get(i + ballNum));
 		}
