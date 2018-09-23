@@ -44,4 +44,32 @@ class TestBowl{
 		assertEquals(Bowl.score(Collections.nCopies(20, 0)).stream().mapToInt(Integer::intValue).sum(), 0);
 		assertEquals(Bowl.score(Collections.nCopies(20, 4)).stream().mapToInt(Integer::intValue).sum(), 80);
 	}
+
+	@Test
+	void testNoArgs(){
+		String[] args = {};
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.parseArgs(args));
+		assertEquals(e.getMessage(), Bowl.ERROR_EMPTY);
+	}
+
+	@Test
+	void testHighArg(){
+		String arg = "12";
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.extractNumbers(arg));
+		assertEquals(e.getMessage(), String.format(Bowl.ERROR_TOO_HIGH, 12, Bowl.NUM_PINS));
+	}
+
+	@Test
+	void testNegativeArg(){
+		String arg = "-1";
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.extractNumbers(arg));
+		assertEquals(e.getMessage(), String.format(Bowl.ERROR_NEGATIVE, -1));
+	}
+
+	@Test
+	void testNumberParse(){
+		String arg = "8,2,1,3,5";
+		List<Integer> expected = Arrays.asList(8, 2, 1, 3, 5);
+		assertEquals(Bowl.extractNumbers(arg), expected);
+	}
 }
