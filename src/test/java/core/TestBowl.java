@@ -29,6 +29,13 @@ class TestBowl{
 	}
 
 	@Test
+	void testIsLastFrame(){
+		assertFalse(Bowl.isLastFrame(8));
+		assertFalse(Bowl.isLastFrame(1));
+		assertTrue(Bowl.isLastFrame(10));
+	}
+
+	@Test
 	void testSublistSum(){
 		Integer arr[] = {3, 1, 4, 1, 5, 9, 5, 3, 5};
 		List<Integer> list = Arrays.asList(arr);
@@ -71,5 +78,12 @@ class TestBowl{
 		String arg = "8,2,1,3,5";
 		List<Integer> expected = Arrays.asList(8, 2, 1, 3, 5);
 		assertEquals(Bowl.extractNumbers(arg), expected);
+	}
+
+	@Test
+	void testHighFrame(){
+		List<Integer> expected = Arrays.asList(1, 2, 8, 4, 1, 3, 5, 6);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.score(expected));
+		assertEquals(e.getMessage(), String.format(Bowl.ERROR_SUM_PINS_HIGH, 2, 8, 4, 12, Bowl.NUM_PINS));
 	}
 }

@@ -11,9 +11,13 @@ import java.util.stream.IntStream;
 
 public class Bowl{
 	final static int NUM_PINS = 10;
+	final static int NUM_FRAMES = 10;
 	final static String ERROR_EMPTY = "Empty input.  Please input number of pins knocked down in each frame.";
 	final static String ERROR_NEGATIVE = "Invalid pin number: %d.  Number of pins knocked down must be zero or greater.";
 	final static String ERROR_TOO_HIGH = "Invalid pin number: %d.  Number of pins knocked down must be at most %d.";
+	final static String ERROR_SUM_PINS_HIGH = "Frame %d reports %d and %d pins, for a total of %d pins.  Number of pins knocked down per frame must be at most %d.";
+
+	final static String WARN_ALPHABET = "Warning: reading only numeric and separator input.  Ignoring letters.";
 
 	public static void main(String[] args){
 		List<Integer> rolls = parseArgs(args);
@@ -28,6 +32,9 @@ public class Bowl{
 			throw new IllegalArgumentException(ERROR_EMPTY);
 		}
 		String input = Arrays.stream(args).collect(Collectors.joining());
+		if(input.matches("(.*)[a-zA-Z](.*)")){
+			System.out.println(WARN_ALPHABET);
+		}
 		return extractNumbers(input);
 	}
 
@@ -66,26 +73,39 @@ public class Bowl{
 	//TODO: bonus balls from a strike in the last frame.
 	public static List<Integer> score(List<Integer> rolls){
 		int ballNum = 0;
+		int frameNum = 1;
 		List<Integer> scores = new ArrayList<>();
 		for(int i = 0; i < rolls.size(); i++){
 			final int currRoll = rolls.get(i);
 			int points;
 			int lastRoll = i > 0 ? rolls.get(i - 1) : -1;
-			if(isStrike(ballNum, currRoll)){
+			if(ballNum == 1 && (lastRoll + currRoll) > NUM_PINS){
+				throw new IllegalArgumentException(String.format(ERROR_SUM_PINS_HIGH, frameNum, lastRoll, currRoll, lastRoll + currRoll, NUM_PINS));
+			}else if(isStrike(ballNum, currRoll)){
 				points = sumSubList(rolls, i, 2);
 			}else if(isSpare(ballNum, currRoll, lastRoll)){
 				points = sumSubList(rolls, i, 1);
 			}else{
-				points = rolls.get(i);
+				points = currRoll;
 			}
 			scores.add(points);
-			ballNum = (currRoll != NUM_PINS) ? (ballNum + 1) % 2 : 0;
+
+			if(isStrike(ballNum, currRoll) || ballNum == 1){
+				ballNum = 0;
+				frameNum++;
+			}else{
+				ballNum++;
+			}
 		}
 		return scores;
 	}
 
 	public static boolean isSpare(int ballNum, int currRoll, int lastRoll){
 		return ballNum == 1 && currRoll == NUM_PINS - lastRoll;
+	}
+
+	public static boolean isLastFrame(int frameNum){
+		return frameNum == NUM_FRAMES;
 	}
 
 	public static boolean isStrike(int ballNum, int currRoll){
