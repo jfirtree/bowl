@@ -19,6 +19,21 @@ public class Bowl{
 
 	final static String WARN_ALPHABET = "Warning: reading only numeric and separator input.  Ignoring letters.";
 
+	enum Result{
+		NORMAL(0), SPARE(1), STRIKE(2);
+		final public int bonusRolls;
+
+		Result(int bonusRolls){
+			this.bonusRolls = bonusRolls;
+		}
+
+		static Result evaluate(int ballNum, int currRoll, int lastRoll){
+			if(ballNum == 0 && currRoll == NUM_PINS) return STRIKE;
+			else if(ballNum == 1 && currRoll == NUM_PINS - lastRoll) return SPARE;
+			else return NORMAL;
+		}
+	}
+
 	public static void main(String[] args){
 		List<Integer> rolls = parseArgs(args);
 		System.out.println(rolls);
@@ -70,46 +85,40 @@ public class Bowl{
 		return IntStream.rangeClosed(startIndex, startIndex + additionalAddends).map(i -> list.get(i)).sum();
 	}
 
-	//TODO: bonus balls from a strike in the last frame.
 	public static List<Integer> score(List<Integer> rolls){
 		int ballNum = 0;
 		int frameNum = 1;
 		List<Integer> scores = new ArrayList<>();
-		for(int i = 0; i < rolls.size(); i++){
+		int i;
+		for(i = 0; frameNum < NUM_FRAMES; i++){
 			final int currRoll = rolls.get(i);
-			int points;
 			int lastRoll = i > 0 ? rolls.get(i - 1) : -1;
 			if(ballNum == 1 && (lastRoll + currRoll) > NUM_PINS){
 				throw new IllegalArgumentException(String.format(ERROR_SUM_PINS_HIGH, frameNum, lastRoll, currRoll, lastRoll + currRoll, NUM_PINS));
-			}else if(isStrike(ballNum, currRoll)){
-				points = sumSubList(rolls, i, 2);
-			}else if(isSpare(ballNum, currRoll, lastRoll)){
-				points = sumSubList(rolls, i, 1);
-			}else{
-				points = currRoll;
 			}
-			scores.add(points);
+			Result result = Result.evaluate(ballNum, currRoll, lastRoll);
+			scores.add(sumSubList(rolls, i, result.bonusRolls));
 
-			if(isStrike(ballNum, currRoll) || ballNum == 1){
+			if(result == Result.STRIKE || ballNum == 1){
 				ballNum = 0;
 				frameNum++;
 			}else{
 				ballNum++;
 			}
 		}
-		return scores;
-	}
 
-	public static boolean isSpare(int ballNum, int currRoll, int lastRoll){
-		return ballNum == 1 && currRoll == NUM_PINS - lastRoll;
+		//TODO: bonus balls from a strike or spare in the last frame.
+		//TODO: varying pin max validation based on strike, spare, or nothing.
+		int remainingBalls = 2;
+		for(ballNum = 0; ballNum < remainingBalls; ballNum++){
+			scores.add(rolls.get(i + ballNum));
+		}
+
+		return scores;
 	}
 
 	public static boolean isLastFrame(int frameNum){
 		return frameNum == NUM_FRAMES;
-	}
-
-	public static boolean isStrike(int ballNum, int currRoll){
-		return ballNum == 0 && currRoll == NUM_PINS;
 	}
 
 	private static int randomInt(int min, int max){

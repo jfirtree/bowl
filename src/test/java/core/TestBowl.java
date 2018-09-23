@@ -11,21 +11,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class TestBowl{
 	@Test
 	void testStrike(){
-		assertFalse(Bowl.isStrike(1, 10));
-		assertFalse(Bowl.isStrike(0, 11));
-		assertFalse(Bowl.isStrike(0, 9));
+		assertNotEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(1, 10, -1));
+		assertNotEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(0, 11, -1));
+		assertNotEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(0, 9, -1));
 
-		assertTrue(Bowl.isStrike(0, 10));
+		assertEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(0, 10, -1));
 	}
 
 	@Test
 	void testSpare(){
-		assertFalse(Bowl.isSpare(0, 7, 2));
-		assertFalse(Bowl.isSpare(0, 7, 3));
-		assertFalse(Bowl.isSpare(0, 10, 0));
+		assertNotEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(0, 7, 2));
+		assertNotEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(0, 7, 3));
+		assertNotEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(0, 10, 0));
 
-		assertTrue(Bowl.isSpare(1, 0, 10));
-		assertTrue(Bowl.isSpare(1, 7, 3));
+		assertEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(1, 0, 10));
+		assertEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(1, 7, 3));
 	}
 
 	@Test
