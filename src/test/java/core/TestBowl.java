@@ -49,22 +49,28 @@ class TestBowl{
 
 	@Test
 	void testTrivialGame(){
-		assertEquals(0, Bowl.score(Collections.nCopies(20, 0)).stream().mapToInt(Integer::intValue).sum());
-		assertEquals(80, Bowl.score(Collections.nCopies(20, 4)).stream().mapToInt(Integer::intValue).sum());
+		assertEquals(0, Bowl.getSum(Bowl.score(Collections.nCopies(20, 0))));
+		assertEquals(80, Bowl.getSum(Bowl.score(Collections.nCopies(20, 4))));
 	}
 
 	@Test
 	void testSpareScoring(){
-		assertEquals(150, Bowl.score(Collections.nCopies(21, 5)).stream().mapToInt(Integer::intValue).sum());
+		assertEquals(150, Bowl.getSum(Bowl.score(Collections.nCopies(21, 5))));
 		List<Integer> rolls = new ArrayList<>(Collections.nCopies(19, 4));
 		rolls.add(6);
 		rolls.add(2);
-		assertEquals(84, Bowl.score(rolls).stream().mapToInt(Integer::intValue).sum());
+		assertEquals(84, Bowl.getSum(Bowl.score(rolls)));
+	}
+
+	@Test
+	void testGetSum(){
+		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+		assertEquals(15, Bowl.getSum(list));
 	}
 
 	@Test
 	void testStrikeScoring(){
-		assertEquals(300, Bowl.score(Collections.nCopies(12, 10)).stream().mapToInt(Integer::intValue).sum());
+		assertEquals(300, Bowl.getSum(Bowl.score(Collections.nCopies(12, 10))));
 	}
 
 	@Test
@@ -102,6 +108,13 @@ class TestBowl{
 	}
 
 	@Test
+	void testParseArgs(){
+		String[] args = {"1,     2},3%%%%,^4,!!!5,8?"};
+		List<Integer> expected = Arrays.asList(1, 2, 3, 4, 5, 8);
+		assertEquals(expected, Bowl.parseArgs(args));
+	}
+
+	@Test
 	void testHighArg(){
 		String arg = "12";
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.extractNumbers(arg));
@@ -127,5 +140,19 @@ class TestBowl{
 		List<Integer> expected = Arrays.asList(1, 2, 8, 4, 1, 3, 5, 6);
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.score(expected));
 		assertEquals(String.format(Bowl.ERROR_SUM_PINS_HIGH, 2, 8, 4, 12, Bowl.NUM_PINS), e.getMessage());
+	}
+
+	@Test
+	void testHighFinalFrame(){
+		final List<Integer> rolls = new ArrayList<>(Collections.nCopies(19, 4));
+		rolls.add(9);
+		rolls.add(2);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.score(rolls));
+		assertEquals(String.format(Bowl.ERROR_FINAL_FRAME_SUM_PINS_HIGH, 10, 2, 6, 9), e.getMessage());
+
+		for(int i = 18; i < 21; i++){
+			rolls.set(i, Bowl.NUM_PINS);
+		}
+		assertEquals(102, Bowl.getSum(Bowl.score(Bowl.score(rolls))));
 	}
 }

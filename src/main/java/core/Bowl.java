@@ -16,10 +16,14 @@ public class Bowl{
 	final static String ERROR_NEGATIVE = "Invalid pin number: %d.  Number of pins knocked down must be zero or greater.";
 	final static String ERROR_TOO_HIGH = "Invalid pin number: %d.  Number of pins knocked down must be at most %d.";
 	final static String ERROR_SUM_PINS_HIGH = "Frame %d reports %d and %d pins, for a total of %d pins.  Number of pins knocked down per frame must be at most %d.";
+	final static String ERROR_FINAL_FRAME_SUM_PINS_HIGH = "In frame %d, ball %d can be at most %d pins, but a count of %d pins was provided.";
 	final static String ERROR_NOT_ENOUGH_ROLLS = "Not enough rolls provided.  Only got to frame %d, ball %d.";
 	final static String ERROR_TOO_MANY_ROLLS = "Too many rolls provided.  You provided %d, but there should only be %d.";
 
 	final static String WARN_ALPHABET = "Warning: reading only numeric and separator input.  Ignoring letters.";
+
+	final static String PATTERN_ANY_LETTER = "(.*)[a-zA-Z](.*)";
+	final static String PATTERN_ANY_NUMBER = "([-]*\\d+)";
 
 	enum Result{
 		NORMAL(0), SPARE(1), STRIKE(2);
@@ -36,12 +40,16 @@ public class Bowl{
 		}
 	}
 
+	public static int getSum(List<Integer> rolls){
+		return rolls.stream().mapToInt(Integer::intValue).sum();
+	}
+
 	public static void main(String[] args){
 		List<Integer> rolls = parseArgs(args);
 		System.out.println(rolls);
 		final List<Integer> scores = score(rolls);
 		System.out.println(scores);
-		System.out.println(scores.stream().mapToInt(Integer::intValue).sum());
+		System.out.println(getSum(scores));
 	}
 
 	static List<Integer> parseArgs(String[] args){
@@ -49,14 +57,14 @@ public class Bowl{
 			throw new IllegalArgumentException(ERROR_EMPTY);
 		}
 		String input = Arrays.stream(args).collect(Collectors.joining());
-		if(input.matches("(.*)[a-zA-Z](.*)")){
+		if(input.matches(PATTERN_ANY_LETTER)){
 			System.out.println(WARN_ALPHABET);
 		}
 		return extractNumbers(input);
 	}
 
 	static List<Integer> extractNumbers(String input){
-		final Matcher matcher = Pattern.compile("([-]*\\d+)").matcher(input);
+		final Matcher matcher = Pattern.compile(PATTERN_ANY_NUMBER).matcher(input);
 		List<Integer> toReturn = new ArrayList<>();
 		while(matcher.find()){
 			final int roll = Integer.parseInt(matcher.group());
@@ -120,8 +128,13 @@ public class Bowl{
 		else if(inputRemaining > remainingBalls)
 			throw new IllegalArgumentException(String.format(ERROR_TOO_MANY_ROLLS, totalRolls, i + remainingBalls));
 
+		int maxRoll = NUM_PINS;
 		for(ballNum = 0; ballNum < remainingBalls; ballNum++){
-			scores.add(rolls.get(i + ballNum));
+			final int currRoll = rolls.get(i + ballNum);
+			if(currRoll > maxRoll)
+				throw new IllegalArgumentException(String.format(ERROR_FINAL_FRAME_SUM_PINS_HIGH, frameNum, ballNum + 1, maxRoll, currRoll));
+			scores.add(currRoll);
+			maxRoll = currRoll < NUM_PINS ? NUM_PINS - currRoll : NUM_PINS;
 		}
 
 		return scores;
