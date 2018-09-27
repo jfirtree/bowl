@@ -7,6 +7,10 @@ The app is not picky about format, as long as your numbers are separated by a no
 
 The app will compute your score, and print out a frame-by-frame breakdown.
 
+1. Download the latest [release](https://github.com/jfirtree/bowl/archive/1.0.zip).
+2. Extract the archive file.
+3. Within the extracted folder, run the program according to usage instructions below.
+
 ## Usage
 The \<rolls\> parameter is a list of each of your rolls in numeric format.
 #### Valid Input Examples 
