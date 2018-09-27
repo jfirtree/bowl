@@ -11,7 +11,6 @@ public class Bowl{
 	final static String ERROR_EMPTY = "Empty input.  Please input number of pins knocked down in each frame.";
 	final static String ERROR_NEGATIVE = "Invalid pin number: %d.  Number of pins knocked down must be zero or greater.";
 	final static String ERROR_TOO_HIGH = "Invalid pin number: %d.  Number of pins knocked down must be at most %d.";
-	final static String ERROR_FINAL_FRAME_SUM_PINS_HIGH = "In frame %d, ball %d can be at most %d pins, but a count of %d pins was provided.";
 	final static String ERROR_NOT_ENOUGH_ROLLS = "Not enough rolls provided.  Missing starting at frame %d, ball %d.";
 	final static String ERROR_TOO_MANY_ROLLS = "Too many rolls provided.  You provided %d, but there should only be %d.";
 
@@ -21,16 +20,21 @@ public class Bowl{
 	final static String PATTERN_ANY_NUMBER = "([-]*\\d+)";
 
 	public static void main(String[] args){
-		List<Integer> rolls = parseArgs(args);
-		System.out.println(rolls);
-		final ScoreCard scoreCard = score(rolls);
+		try{
+			List<Integer> rolls = parseArgs(args);
+			final ScoreCard scoreCard = score(rolls);
+			System.out.println(scoreCard.getScorePrintout());
+			System.out.println(scoreCard.getScore());
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
 	}
 
 	static List<Integer> parseArgs(String[] args){
 		if(args.length < 1){
 			throw new IllegalArgumentException(ERROR_EMPTY);
 		}
-		String input = Arrays.stream(args).collect(Collectors.joining());
+		String input = Arrays.stream(args).collect(Collectors.joining(" "));
 		if(input.matches(PATTERN_ANY_LETTER)){
 			System.out.println(WARN_ALPHABET);
 		}
@@ -62,10 +66,10 @@ public class Bowl{
 				throw new IndexOutOfBoundsException(String.format(ERROR_NOT_ENOUGH_ROLLS, scoreCard.getFrameNum(), scoreCard.getBallNum() + 1));
 		}
 
-		int remainingBalls = rolls.get(i) + rolls.get(i + 1) >= 10 ? 3 : 2;
+		int remainingBalls = rolls.get(i) + rolls.get(i + 1) >= ScoreCard.NUM_PINS ? 3 : 2;
 		int inputRemaining = totalRolls - i;
 		if(inputRemaining < remainingBalls)
-			throw new IndexOutOfBoundsException(String.format(ERROR_NOT_ENOUGH_ROLLS, 10, inputRemaining));
+			throw new IndexOutOfBoundsException(String.format(ERROR_NOT_ENOUGH_ROLLS, ScoreCard.NUM_PINS, inputRemaining));
 		else if(inputRemaining > remainingBalls)
 			throw new IllegalArgumentException(String.format(ERROR_TOO_MANY_ROLLS, totalRolls, i + remainingBalls));
 

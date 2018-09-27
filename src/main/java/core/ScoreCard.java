@@ -14,8 +14,21 @@ public class ScoreCard{
 	private int frameNum;
 	private int prevRoll;
 	private int maxRoll;
+	private int lastFrameIndex;
+
+	public List<Integer> getRollwiseScores(){
+		return rollwiseScores;
+	}
+
 	private final List<Integer> rollwiseScores;
 	private final List<Result> results;
+	private final List<Integer> rollingTotal;
+
+	public String getScorePrintout(){
+		return scorePrintout;
+	}
+
+	private String scorePrintout;
 
 	public int getBallNum(){
 		return ballNum;
@@ -32,6 +45,9 @@ public class ScoreCard{
 		updateMaxRoll();
 		rollwiseScores = new ArrayList<>();
 		results = new ArrayList<>();
+		rollingTotal = new ArrayList<>();
+		scorePrintout = "";
+		lastFrameIndex = -1;
 	}
 
 	public boolean gameOver(){
@@ -59,17 +75,53 @@ public class ScoreCard{
 		return new ScoreCard();
 	}
 
+	public List<Integer> getRollingTotal(){
+		return rollingTotal;
+	}
+
 	private void finish(){
+		String frameBuffer = "";
+		StringBuilder individualRollBuilder = new StringBuilder("|");
+		StringBuilder cumulativeBuilder = new StringBuilder("|");
 		final int totalRolls = results.size();
+		int total = 0;
+		int ballCount = 0;
+
 		for(int i = 0; i < totalRolls; i++){
 			final Result currResult = results.get(i);
-			int bonus = 0;
-			for(int j = 1; j <= currResult.bonusRolls; j++){
-				bonus += rollwiseScores.get(i + j);
+			final int pureRoll = rollwiseScores.get(i);
+			frameBuffer += currResult.symbolForRoll(pureRoll);
+
+			//Bonuses applied in every frame but the final one.
+			if(i < lastFrameIndex){
+				int bonus = 0;
+				for(int j = 1; j <= currResult.bonusRolls; j++){
+					bonus += rollwiseScores.get(i + j);
+				}
+				if(bonus != 0)
+					rollwiseScores.set(i, pureRoll + bonus);
 			}
-			if(bonus != 0)
-				rollwiseScores.set(i, rollwiseScores.get(i) + bonus);
+			total += rollwiseScores.get(i);
+			rollingTotal.add(total);
+
+			if(i < lastFrameIndex && newFrameActivated(currResult, ballCount)){
+				individualRollBuilder.append(String.format("%1$4s", frameBuffer));
+				frameBuffer = "";
+				individualRollBuilder.append('|');
+				ballCount = 0;
+				cumulativeBuilder.append(String.format("%1$4s", rollingTotal.get(i)));
+				cumulativeBuilder.append('|');
+			}else{
+				frameBuffer += ' ';
+				ballCount++;
+			}
 		}
+		individualRollBuilder.append(String.format(" %1$6s", frameBuffer));
+		individualRollBuilder.append('|');
+		cumulativeBuilder.append(String.format("%1$7s", rollingTotal.get(rollingTotal.size() - 1)));
+		cumulativeBuilder.append('|');
+
+		scorePrintout = individualRollBuilder.toString() + "\n" + cumulativeBuilder.toString();
 	}
 
 	public int getScore(){
@@ -82,13 +134,14 @@ public class ScoreCard{
 		if(gameOver())
 			throw new IllegalArgumentException(ERROR_GAME_OVER);
 
-		final Result result = !isLastFrame() ? Result.evaluate(ballNum, currRoll, prevRoll) : Result.NORMAL;
+		final Result result = Result.evaluate(ballNum, currRoll, prevRoll);
 		rollwiseScores.add(currRoll);
 		results.add(result);
 
-		if(!isLastFrame() && newFrameActivated(result)){
+		if(!isLastFrame() && newFrameActivated(result, ballNum)){
 			ballNum = 0;
 			frameNum++;
+			if(isLastFrame()) lastFrameIndex = rollwiseScores.size();
 		}else{
 			ballNum++;
 		}
@@ -103,7 +156,7 @@ public class ScoreCard{
 		return result;
 	}
 
-	private boolean newFrameActivated(Result result){
+	private static boolean newFrameActivated(Result result, int ballNum){
 		return result == Result.STRIKE || ballNum == 1;
 	}
 

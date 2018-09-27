@@ -24,4 +24,12 @@ public class TestResult{
 		assertEquals(Result.SPARE, Result.evaluate(1, 0, 10));
 		assertEquals(Result.SPARE, Result.evaluate(1, 7, 3));
 	}
+
+	@Test
+	void testSymbol(){
+		assertEquals("-", Result.NORMAL.symbolForRoll(0));
+		assertEquals("5", Result.NORMAL.symbolForRoll(5));
+		assertEquals("/", Result.SPARE.symbolForRoll(5));
+		assertEquals("X", Result.STRIKE.symbolForRoll(10));
+	}
 }
