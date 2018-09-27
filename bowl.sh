@@ -1,0 +1,1 @@
+ java -jar target/bowl-1.0.jar $*

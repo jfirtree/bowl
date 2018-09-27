@@ -24,12 +24,13 @@ public class Bowl{
 			List<Integer> rolls = parseArgs(args);
 			final ScoreCard scoreCard = score(rolls);
 			System.out.println(scoreCard.getScorePrintout());
-			System.out.println(scoreCard.getScore());
+			System.out.printf("Your total score: %d\n", scoreCard.getScore());
 		}catch(Exception e){
 			System.out.println(e.getMessage());
 		}
 	}
 
+	/* Join all user arguments into a single string, and return a list of distinct numbers from that list. */
 	static List<Integer> parseArgs(String[] args){
 		if(args.length < 1){
 			throw new IllegalArgumentException(ERROR_EMPTY);
@@ -41,6 +42,9 @@ public class Bowl{
 		return extractNumbers(input);
 	}
 
+	/* Using a basic regular expression, find each nonnegative number.
+	@throws IllegalArgumentException on encountering any negative number.
+	 */
 	static List<Integer> extractNumbers(String input){
 		final Matcher matcher = Pattern.compile(PATTERN_ANY_NUMBER).matcher(input);
 		List<Integer> toReturn = new ArrayList<>();
@@ -55,6 +59,7 @@ public class Bowl{
 		return toReturn;
 	}
 
+	/* Core method to validate user's inputted rolls, and build a corresponding ScoreCard. */
 	public static ScoreCard score(List<Integer> rolls){
 		final int totalRolls = rolls.size();
 		int i = 0;
