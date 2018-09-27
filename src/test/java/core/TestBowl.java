@@ -7,70 +7,29 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TestBowl{
-	@Test
-	void testStrike(){
-		assertNotEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(1, 10, -1));
-		assertNotEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(0, 11, -1));
-		assertNotEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(0, 9, -1));
-
-		assertEquals(Bowl.Result.STRIKE, Bowl.Result.evaluate(0, 10, -1));
-	}
-
-	@Test
-	void testSpare(){
-		assertNotEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(0, 7, 2));
-		assertNotEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(0, 7, 3));
-		assertNotEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(0, 10, 0));
-
-		assertEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(1, 0, 10));
-		assertEquals(Bowl.Result.SPARE, Bowl.Result.evaluate(1, 7, 3));
-	}
-
-	@Test
-	void testIsLastFrame(){
-		assertFalse(Bowl.isLastFrame(8));
-		assertFalse(Bowl.isLastFrame(1));
-		assertTrue(Bowl.isLastFrame(10));
-	}
-
-	@Test
-	void testSublistSum(){
-		Integer arr[] = {3, 1, 4, 1, 5, 9, 5, 3, 5};
-		List<Integer> list = Arrays.asList(arr);
-
-		assertEquals(3, Bowl.sumSubList(list, 0, 0));
-		assertEquals(8, Bowl.sumSubList(list, 0, 2));
-		assertEquals(15, Bowl.sumSubList(list, 3, 2));
-		assertEquals(8, Bowl.sumSubList(list, 7, 1));
-	}
 
 	@Test
 	void testTrivialGame(){
-		assertEquals(0, Bowl.getSum(Bowl.score(Collections.nCopies(20, 0))));
-		assertEquals(80, Bowl.getSum(Bowl.score(Collections.nCopies(20, 4))));
+		assertEquals(0, Bowl.score(Collections.nCopies(20, 0)).getScore());
+		assertEquals(80, Bowl.score(Collections.nCopies(20, 4)).getScore());
 	}
 
 	@Test
 	void testSpareScoring(){
-		assertEquals(150, Bowl.getSum(Bowl.score(Collections.nCopies(21, 5))));
+		assertEquals(150, Bowl.score(Collections.nCopies(21, 5)).getScore());
 		List<Integer> rolls = new ArrayList<>(Collections.nCopies(19, 4));
 		rolls.add(6);
 		rolls.add(2);
-		assertEquals(84, Bowl.getSum(Bowl.score(rolls)));
-	}
-
-	@Test
-	void testGetSum(){
-		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
-		assertEquals(15, Bowl.getSum(list));
+		assertEquals(84, Bowl.score(rolls).getScore());
 	}
 
 	@Test
 	void testStrikeScoring(){
-		assertEquals(300, Bowl.getSum(Bowl.score(Collections.nCopies(12, 10))));
+		assertEquals(300, Bowl.score(Collections.nCopies(12, 10)).getScore());
 	}
 
 	@Test
@@ -78,12 +37,12 @@ class TestBowl{
 		//Trivial game - need 20 balls.
 		final List<Integer> rolls = new ArrayList<>(Collections.nCopies(15, 4));
 		IndexOutOfBoundsException e = assertThrows(IndexOutOfBoundsException.class, () -> Bowl.score(rolls));
-		assertEquals(String.format(Bowl.ERROR_NOT_ENOUGH_ROLLS, 8, 1), e.getMessage());
+		assertEquals(String.format(Bowl.ERROR_NOT_ENOUGH_ROLLS, 8, 2), e.getMessage());
 
 		//Still trivial, just testing that error message reports correct frame and ball number.
 		rolls.add(4);
 		e = assertThrows(IndexOutOfBoundsException.class, () -> Bowl.score(rolls));
-		assertEquals(String.format(Bowl.ERROR_NOT_ENOUGH_ROLLS, 8, 2), e.getMessage());
+		assertEquals(String.format(Bowl.ERROR_NOT_ENOUGH_ROLLS, 9, 1), e.getMessage());
 
 		//Strike - need 3 balls in 10th frame
 		rolls.clear();
@@ -118,7 +77,7 @@ class TestBowl{
 	void testHighArg(){
 		String arg = "12";
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.extractNumbers(arg));
-		assertEquals(String.format(Bowl.ERROR_TOO_HIGH, 12, Bowl.NUM_PINS), e.getMessage());
+		assertEquals(String.format(Bowl.ERROR_TOO_HIGH, 12, ScoreCard.NUM_PINS), e.getMessage());
 	}
 
 	@Test
@@ -139,7 +98,7 @@ class TestBowl{
 	void testHighFrame(){
 		List<Integer> expected = Arrays.asList(1, 2, 8, 4, 1, 3, 5, 6);
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.score(expected));
-		assertEquals(String.format(Bowl.ERROR_SUM_PINS_HIGH, 2, 8, 4, 12, Bowl.NUM_PINS), e.getMessage());
+		assertEquals(String.format(ScoreCard.ERROR_SUM_PINS_HIGH, 2, 8, 4, 12, ScoreCard.NUM_PINS), e.getMessage());
 	}
 
 	@Test
@@ -148,11 +107,11 @@ class TestBowl{
 		rolls.add(9);
 		rolls.add(2);
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Bowl.score(rolls));
-		assertEquals(String.format(Bowl.ERROR_FINAL_FRAME_SUM_PINS_HIGH, 10, 2, 6, 9), e.getMessage());
+		assertEquals(String.format(ScoreCard.ERROR_SUM_PINS_HIGH, 10, 4, 9, 13, 10), e.getMessage());
 
 		for(int i = 18; i < 21; i++){
-			rolls.set(i, Bowl.NUM_PINS);
+			rolls.set(i, ScoreCard.NUM_PINS);
 		}
-		assertEquals(102, Bowl.getSum(Bowl.score(Bowl.score(rolls))));
+		assertEquals(102, Bowl.score(rolls).getScore());
 	}
 }
