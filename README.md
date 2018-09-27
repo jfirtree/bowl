@@ -21,6 +21,7 @@ The \<rolls\> parameter is a list of each of your rolls in numeric format.
 `(10),(2,3)`
 
 ### Windows
+`bowl <rolls>`
 ### Linux
 `sh bowl.sh <rolls>`
 ### Java
